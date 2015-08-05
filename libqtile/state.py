@@ -60,7 +60,7 @@ class QtileState(object):
             if screen == qtile.currentScreen:
                 self.current_screen = index
 
-    def restore_layout(self, qtile, saved_layout, layout):
+    def restore_window_state(self, qtile, saved_layout, layout):
 
         members = dir(saved_layout)
         for member in members:
@@ -95,7 +95,10 @@ class QtileState(object):
                 for layout in group.layouts:
                     d = self.layout_map[group.name][layout.name]
                     d.group = layout.group
-                    self.restore_layout(qtile, d, layout)
+                    self.restore_window_state(qtile, d, layout)
+                    if isinstance(layout,  libqtile.layout.stack.Stack):
+                            for i in range(len(layout.stacks)):
+                                self.restore_window_state(qtile,d.stacks[i],layout.stacks[i])
                     if isinstance(layout, libqtile.layout.tree.TreeTab):
                         layout._tree = d._tree
                         layout._nodes = d._nodes
@@ -108,10 +111,10 @@ class QtileState(object):
                     if isinstance(layout, libqtile.layout.slice.Slice):
                         d = self.layout_map[group.name][layout.name + '__slice']
                         d.group = layout.group
-                        self.restore_layout(qtile, d, layout._slice)
+                        self.restore_window_state(qtile, d, layout._slice)
                         d = self.layout_map[group.name][layout.name + '_fallback']
                         d.group = layout.group
-                        self.restore_layout(qtile, d, layout.fallback)
+                        self.restore_window_state(qtile, d, layout.fallback)
         except KeyError:
             pass  # group missing
 
