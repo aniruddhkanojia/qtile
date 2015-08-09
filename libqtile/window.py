@@ -1339,9 +1339,15 @@ class Window(_Window):
 
     def __getstate__(self):
         d = {}
-        d['window'] = self.window.wid  # using id alone we can restore the object attributes
+        try:
+            d['window'] = self.window.wid  # using id alone we can restore the object attributes
+        except AttributeError:
+            self.qtile.log.error("Window was not restored correctly")
         return d
 
     def __setstate__(self, state):
-        self.wid = state['window']
+        try:
+            self.wid = state['window']
+        except KeyError:
+            self.qtile.log.error("Failure in getting state")
         return self
